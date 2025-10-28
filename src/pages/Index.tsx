@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Info } from "lucide-react";
+import { Send, Sparkles, Info, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import ChatMessage from "@/components/ChatMessage";
 import CrisisResources from "@/components/CrisisResources";
 import {
@@ -20,6 +22,8 @@ type Message = {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -29,7 +33,15 @@ const Index = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Signed out",
+      description: "Take care! Luma will be here when you need support. 💜",
+    });
+    navigate("/");
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -163,34 +175,44 @@ const Index = () => {
             </div>
           </div>
           
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Info className="w-5 h-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>About Luma 💜</DialogTitle>
-                <DialogDescription className="space-y-3 text-left">
-                  <p>
-                    Luma is an AI companion designed to provide emotional support and a listening ear.
-                  </p>
-                  <p className="font-semibold text-foreground">
-                    Important: Luma is not a substitute for professional mental health care.
-                  </p>
-                  <p>
-                    If you're experiencing a crisis or need professional help, please reach out to a
-                    licensed therapist or contact crisis resources immediately.
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    Your conversations are processed securely but please avoid sharing sensitive personal
-                    information.
-                  </p>
-                </DialogDescription>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Info className="w-5 h-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>About Luma 💜</DialogTitle>
+                  <DialogDescription className="space-y-3 text-left">
+                    <p>
+                      Luma is an AI companion designed to provide emotional support and a listening ear.
+                    </p>
+                    <p className="font-semibold text-foreground">
+                      Important: Luma is not a substitute for professional mental health care.
+                    </p>
+                    <p>
+                      If you're experiencing a crisis or need professional help, please reach out to a
+                      licensed therapist or contact crisis resources immediately.
+                    </p>
+                    <p className="text-xs text-muted-foreground italic">
+                      Your conversations are processed securely but please avoid sharing sensitive personal
+                      information.
+                    </p>
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleSignOut}
+              title="Sign out"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 

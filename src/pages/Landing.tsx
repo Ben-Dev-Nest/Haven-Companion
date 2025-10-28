@@ -1,12 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Users, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Landing = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-gradient-calm">
+      {/* Header */}
+      <header className="container mx-auto px-4 py-6">
+        <nav className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Heart className="w-8 h-8 text-primary" />
+            <span className="text-2xl font-bold text-foreground">Lovable</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link to="/login">
+              <Button variant="ghost">Log In</Button>
+            </Link>
+            <Link to="/signup">
+              <Button>Get Started</Button>
+            </Link>
+          </div>
+        </nav>
+      </header>
+      
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-20 pb-16 text-center">
         <div className="max-w-4xl mx-auto">
@@ -18,21 +34,16 @@ const Landing = () => {
             dedicated to your mental health journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/auth")}
-              className="text-lg px-8"
-            >
-              Get Started Free
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate("/chat")}
-              className="text-lg px-8"
-            >
-              Try Luma Now
-            </Button>
+            <Link to="/signup">
+              <Button size="lg" className="text-lg px-8">
+                Get Started Free
+              </Button>
+            </Link>
+            <Link to="/chat">
+              <Button size="lg" variant="outline" className="text-lg px-8">
+                Try Luma Now
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -70,13 +81,11 @@ const Landing = () => {
           <p className="text-muted-foreground mb-6">
             Join thousands finding support, healing, and hope with Lovable.
           </p>
-          <Button 
-            size="lg"
-            onClick={() => navigate("/auth")}
-            className="text-lg px-8"
-          >
-            Start Your Free Journey
-          </Button>
+          <Link to="/signup">
+            <Button size="lg" className="text-lg px-8">
+              Start Your Free Journey
+            </Button>
+          </Link>
         </div>
       </section>
 

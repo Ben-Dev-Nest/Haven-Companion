@@ -24,6 +24,16 @@ type Message = {
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Logged out",
+      description: "Take care of yourself. Come back anytime you need support 💜",
+    });
+    navigate("/");
+  };
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -207,7 +217,7 @@ const Index = () => {
             <Button 
               variant="ghost" 
               size="icon"
-              onClick={handleSignOut}
+              onClick={handleLogout}
               title="Sign out"
             >
               <LogOut className="w-5 h-5" />

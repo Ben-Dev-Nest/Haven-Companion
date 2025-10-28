@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setSession(session);
         setIsLoading(false);
         if (!session) {
-          navigate("/auth");
+          navigate("/login");
         }
       }
     );
@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       setSession(session);
       setIsLoading(false);
       if (!session) {
-        navigate("/auth");
+        navigate("/login");
       }
     });
 

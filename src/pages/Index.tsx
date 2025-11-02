@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import ChatMessage from "@/components/ChatMessage";
 import CrisisResources from "@/components/CrisisResources";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { useConversations } from "@/hooks/useConversations";
 import {
   Dialog,
   DialogContent,
@@ -16,39 +18,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-};
-
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    conversations,
+    currentConversationId,
+    messages,
+    createConversation,
+    saveMessage,
+    deleteConversation,
+    updateConversationTitle,
+    switchConversation,
+    setMessages,
+  } = useConversations();
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
       title: "Logged out",
       description: "Take care of yourself. Come back anytime you need support 💜",
-    });
-    navigate("/");
-  };
-  
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hi there 🌱 I'm Luma. I'm here to listen, support, and walk with you through whatever you're feeling. What's on your mind today?",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: "Signed out",
-      description: "Take care! Luma will be here when you need support. 💜",
     });
     navigate("/");
   };
@@ -61,7 +54,7 @@ const Index = () => {
     scrollToBottom();
   }, [messages]);
 
-  const streamChat = async (userMessage: Message) => {
+  const streamChat = async (userMessage: { role: 'user' | 'assistant'; content: string }, conversationId: string) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/luma-chat`;
     
     try {
@@ -131,6 +124,11 @@ const Index = () => {
           }
         }
       }
+
+      // Save the complete assistant message
+      if (assistantContent) {
+        await saveMessage(conversationId, 'assistant', assistantContent);
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -155,12 +153,26 @@ const Index = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    // Create a new conversation if none exists
+    let convId = currentConversationId;
+    if (!convId) {
+      const newConv = await createConversation();
+      if (!newConv) return;
+      convId = newConv.id;
+      await switchConversation(convId);
+    }
+
+    const userMessage = { role: "user" as const, content: input.trim() };
+    
+    // Save user message to database
+    await saveMessage(convId, "user", userMessage.content);
+    
+    // Add to local state
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
-    await streamChat(userMessage);
+    await streamChat(userMessage, convId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -170,117 +182,155 @@ const Index = () => {
     }
   };
 
+  const handleNewConversation = async () => {
+    const newConv = await createConversation();
+    if (newConv) {
+      await switchConversation(newConv.id);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-accent/10">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-lg sticky top-0 z-10 shadow-soft">
-        <div className="container max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow">
-              <Sparkles className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-accent/10 flex">
+      {/* Sidebar */}
+      <ConversationSidebar
+        conversations={conversations}
+        currentConversationId={currentConversationId}
+        onSelectConversation={switchConversation}
+        onNewConversation={handleNewConversation}
+        onDeleteConversation={deleteConversation}
+        onRenameConversation={updateConversationTitle}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="border-b border-border/50 bg-card/80 backdrop-blur-lg sticky top-0 z-10 shadow-soft">
+          <div className="container max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-foreground">Luma</h1>
+                <p className="text-xs text-muted-foreground">
+                  {currentConversationId 
+                    ? conversations.find(c => c.id === currentConversationId)?.title || 'Your mental health companion'
+                    : 'Your mental health companion'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Luma</h1>
-              <p className="text-xs text-muted-foreground">Your mental health companion</p>
+            
+            <div className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Info className="w-5 h-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>About Luma 💜</DialogTitle>
+                    <DialogDescription className="space-y-3 text-left">
+                      <p>
+                        Luma is an AI companion designed to provide emotional support and a listening ear.
+                      </p>
+                      <p className="font-semibold text-foreground">
+                        Important: Luma is not a substitute for professional mental health care.
+                      </p>
+                      <p>
+                        If you're experiencing a crisis or need professional help, please reach out to a
+                        licensed therapist or contact crisis resources immediately.
+                      </p>
+                      <p className="text-xs text-muted-foreground italic">
+                        Your conversations are processed securely but please avoid sharing sensitive personal
+                        information.
+                      </p>
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleLogout}
+                title="Sign out"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Info className="w-5 h-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>About Luma 💜</DialogTitle>
-                  <DialogDescription className="space-y-3 text-left">
-                    <p>
-                      Luma is an AI companion designed to provide emotional support and a listening ear.
-                    </p>
-                    <p className="font-semibold text-foreground">
-                      Important: Luma is not a substitute for professional mental health care.
-                    </p>
-                    <p>
-                      If you're experiencing a crisis or need professional help, please reach out to a
-                      licensed therapist or contact crisis resources immediately.
-                    </p>
-                    <p className="text-xs text-muted-foreground italic">
-                      Your conversations are processed securely but please avoid sharing sensitive personal
-                      information.
-                    </p>
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleLogout}
-              title="Sign out"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Chat Area */}
-      <main className="container max-w-4xl mx-auto px-4 py-6 pb-32">
-        <div className="space-y-6">
-          {/* Crisis Resources Card */}
-          <CrisisResources />
+        {/* Chat Area */}
+        <main className="flex-1 overflow-y-auto px-4 py-6 pb-32">
+          <div className="container max-w-4xl mx-auto space-y-6">
+            {/* Crisis Resources Card */}
+            <CrisisResources />
 
-          {/* Messages */}
-          <div className="space-y-4">
-            {messages.map((msg, idx) => (
-              <ChatMessage key={idx} role={msg.role} content={msg.content} />
-            ))}
-            {isLoading && (
-              <div className="flex gap-3 mb-4 animate-fade-in">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-                </div>
-                <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            {/* Messages */}
+            <div className="space-y-4">
+              {messages.length === 0 && (
+                <div className="text-center py-12 space-y-4">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow">
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold mb-2">Welcome to Luma</h2>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      I'm here to listen and support you. Share what's on your mind, and let's work through it together.
+                    </p>
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-      </main>
+              )}
 
-      {/* Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border/50 bg-card/95 backdrop-blur-lg shadow-soft">
-        <div className="container max-w-4xl mx-auto px-4 py-4">
-          <div className="flex gap-3 items-end">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Share what's on your mind..."
-              className="resize-none rounded-2xl border-border/70 focus:border-primary transition-colors"
-              rows={2}
-              disabled={isLoading}
-            />
-            <Button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              className="h-12 w-12 rounded-full shadow-soft hover:shadow-glow transition-all"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
+              {messages.map((msg, idx) => (
+                <ChatMessage key={msg.id || idx} role={msg.role} content={msg.content} />
+              ))}
+              {isLoading && (
+                <div className="flex gap-3 mb-4 animate-fade-in">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Press Enter to send • Shift+Enter for new line
-          </p>
+        </main>
+
+        {/* Input Area */}
+        <div className="fixed bottom-0 right-0 left-64 border-t border-border/50 bg-card/95 backdrop-blur-lg shadow-soft">
+          <div className="container max-w-4xl mx-auto px-4 py-4">
+            <div className="flex gap-3 items-end">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Share what's on your mind..."
+                className="resize-none rounded-2xl border-border/70 focus:border-primary transition-colors"
+                rows={2}
+                disabled={isLoading}
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                size="icon"
+                className="h-12 w-12 rounded-full shadow-soft hover:shadow-glow transition-all"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Press Enter to send • Shift+Enter for new line
+            </p>
+          </div>
         </div>
       </div>
     </div>

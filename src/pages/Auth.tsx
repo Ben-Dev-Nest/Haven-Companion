@@ -54,7 +54,7 @@ const Auth = () => {
 
       toast({
         title: "Welcome to Lovable! 🌱",
-        description: "Your account has been created. You can now chat with Luma.",
+        description: "Your account has been created. You can now chat with Haven.",
       });
     } catch (error: any) {
       toast({
@@ -81,7 +81,7 @@ const Auth = () => {
 
       toast({
         title: "Welcome back! 💜",
-        description: "Luma is ready to chat with you.",
+        description: "Haven is ready to chat with you.",
       });
     } catch (error: any) {
       toast({

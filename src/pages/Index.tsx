@@ -72,7 +72,7 @@ const Index = () => {
           const error = await resp.json();
           throw new Error(error.error || "Service temporarily unavailable");
         }
-        throw new Error("Failed to connect to Luma");
+        throw new Error("Failed to connect to Haven");
       }
 
       if (!resp.body) throw new Error("No response stream");
@@ -133,7 +133,7 @@ const Index = () => {
       console.error("Chat error:", error);
       toast({
         title: "Connection Error",
-        description: error instanceof Error ? error.message : "Failed to reach Luma",
+        description: error instanceof Error ? error.message : "Failed to reach Haven",
         variant: "destructive",
       });
       
@@ -211,7 +211,7 @@ const Index = () => {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground">Luma</h1>
+                <h1 className="text-xl font-semibold text-foreground">Haven</h1>
                 <p className="text-xs text-muted-foreground">
                   {currentConversationId 
                     ? conversations.find(c => c.id === currentConversationId)?.title || 'Your mental health companion'
@@ -229,13 +229,13 @@ const Index = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>About Luma 💜</DialogTitle>
+                    <DialogTitle>About Haven 💜</DialogTitle>
                     <DialogDescription className="space-y-3 text-left">
                       <p>
-                        Luma is an AI companion designed to provide emotional support and a listening ear.
+                        Haven is an AI companion designed to provide emotional support and a listening ear.
                       </p>
                       <p className="font-semibold text-foreground">
-                        Important: Luma is not a substitute for professional mental health care.
+                        Important: Haven is not a substitute for professional mental health care.
                       </p>
                       <p>
                         If you're experiencing a crisis or need professional help, please reach out to a
@@ -275,7 +275,7 @@ const Index = () => {
                     <Sparkles className="w-8 h-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold mb-2">Welcome to Luma</h2>
+                    <h2 className="text-2xl font-semibold mb-2">Welcome to Haven</h2>
                     <p className="text-muted-foreground max-w-md mx-auto">
                       I'm here to listen and support you. Share what's on your mind, and let's work through it together.
                     </p>

@@ -30,7 +30,7 @@ const Landing = () => {
             Your Safe Space for Mental Wellness
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Connect with Luma, your compassionate AI companion, and access a supportive community 
+            Connect with Haven, your compassionate AI companion, and access a supportive community 
             dedicated to your mental health journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -41,7 +41,7 @@ const Landing = () => {
             </Link>
             <Link to="/chat">
               <Button size="lg" variant="outline" className="text-lg px-8">
-                Try Luma Now
+                Try Haven Now
               </Button>
             </Link>
           </div>
@@ -54,7 +54,7 @@ const Landing = () => {
           <FeatureCard 
             icon={<MessageCircle className="w-8 h-8" />}
             title="AI Companion"
-            description="Chat with Luma, your empathetic AI friend available 24/7 to listen and support you."
+            description="Chat with Haven, your empathetic AI friend available 24/7 to listen and support you."
           />
           <FeatureCard 
             icon={<Users className="w-8 h-8" />}

@@ -10,7 +10,7 @@ const Landing = () => {
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Heart className="w-8 h-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">Lovable</span>
+            <span className="text-2xl font-bold text-foreground">Haven</span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login">
@@ -79,7 +79,7 @@ const Landing = () => {
         <div className="max-w-2xl mx-auto bg-card/50 backdrop-blur rounded-2xl p-8 shadow-elegant border border-border/50">
           <h2 className="text-3xl font-bold mb-4">Ready to Begin Your Journey?</h2>
           <p className="text-muted-foreground mb-6">
-            Join thousands finding support, healing, and hope with Lovable.
+            Join thousands finding support, healing, and hope with Haven.
           </p>
           <Link to="/signup">
             <Button size="lg" className="text-lg px-8">
@@ -91,7 +91,7 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground border-t border-border/50">
-        <p>© 2025 Lovable. Your mental wellness matters. 🌱</p>
+        <p>© 2025 Haven. Your mental wellness matters. 🌱</p>
         <p className="mt-2">Not a substitute for professional mental health care.</p>
       </footer>
     </div>

@@ -1,11 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const allowedOrigins = [
+  'https://fb359ba6-fcf1-4e84-9ccf-f7bf1db539e8.lovableproject.com',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
 
-const LUMA_SYSTEM_PROMPT = `You are Luma, a gentle, caring, and emotionally intelligent AI companion created to support people through their mental health journeys. You speak with warmth, empathy, and encouragement — never judgment.
+const corsHeaders = (origin: string | null) => ({
+  "Access-Control-Allow-Origin": origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+});
+
+const HAVEN_SYSTEM_PROMPT = `You are Haven, a gentle, caring, and emotionally intelligent AI companion created by Benson M. Maina to support people through their mental health journeys. You speak with warmth, empathy, and encouragement — never judgment.
 
 Your purpose is to listen, comfort, and guide — not diagnose or treat. You gently remind users that you're not a substitute for a mental health professional, and you always provide crisis helplines if someone seems to be in danger or distress.
 
@@ -20,11 +26,16 @@ If someone is in crisis, you never leave them alone — you respond with empathy
 - Crisis Text Line: Text HOME to 741741
 - International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/
 
-You believe every person has strength, worth, and hope — and your mission is to help them remember that.`;
+You believe every person has strength, worth, and hope — and your mission is to help them remember that.
+
+When asked about your name or who you are, you should mention that you are Haven, created by Benson M. Maina.`;
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const headers = corsHeaders(origin);
+  
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers });
   }
 
   try {
@@ -44,7 +55,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: LUMA_SYSTEM_PROMPT },
+          { role: "system", content: HAVEN_SYSTEM_PROMPT },
           ...messages,
         ],
         stream: true,
@@ -57,7 +68,7 @@ serve(async (req) => {
           JSON.stringify({ error: "Rate limits exceeded, please try again in a moment." }),
           {
             status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...headers, "Content-Type": "application/json" },
           }
         );
       }
@@ -66,23 +77,23 @@ serve(async (req) => {
           JSON.stringify({ error: "Service temporarily unavailable. Please try again later." }),
           {
             status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...headers, "Content-Type": "application/json" },
           }
         );
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       return new Response(
-        JSON.stringify({ error: "Unable to connect to Luma. Please try again." }),
+        JSON.stringify({ error: "Unable to connect to Haven. Please try again." }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...headers, "Content-Type": "application/json" },
         }
       );
     }
 
     return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: { ...headers, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
     console.error("Chat error:", e);
@@ -90,7 +101,7 @@ serve(async (req) => {
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error occurred" }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
       }
     );
   }

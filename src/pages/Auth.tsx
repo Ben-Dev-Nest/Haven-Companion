@@ -7,6 +7,18 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  email: z.string().email("Please enter a valid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  displayName: z.string().max(100, "Display name must be less than 100 characters").optional(),
+});
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -39,13 +51,20 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Validate inputs
+      const validation = signupSchema.safeParse({ email, password, displayName });
+      if (!validation.success) {
+        throw new Error(validation.error.errors[0].message);
+      }
+
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/chat`,
           data: {
-            display_name: displayName || email.split("@")[0],
+            display_name: validation.data.displayName || validation.data.email.split("@")[0],
+            username: (validation.data.displayName || validation.data.email.split("@")[0]).toLowerCase().replace(/\s+/g, ''),
           },
         },
       });
@@ -53,7 +72,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "Welcome to Lovable! 🌱",
+        title: "Welcome to Haven! 🌱",
         description: "Your account has been created. You can now chat with Haven.",
       });
     } catch (error: any) {
@@ -72,9 +91,15 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Validate inputs
+      const validation = loginSchema.safeParse({ email, password });
+      if (!validation.success) {
+        throw new Error(validation.error.errors[0].message);
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
       });
 
       if (error) throw error;
@@ -98,7 +123,7 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-calm flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to Lovable</CardTitle>
+          <CardTitle className="text-2xl">Welcome to Haven</CardTitle>
           <CardDescription>Your safe space for mental wellness</CardDescription>
         </CardHeader>
         <CardContent>

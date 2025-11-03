@@ -7,6 +7,13 @@ import { Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  email: z.string().email("Please enter a valid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  displayName: z.string().min(1, "Display name is required").max(100, "Display name must be less than 100 characters"),
+});
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -21,13 +28,20 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
+      // Validate inputs
+      const validation = signupSchema.safeParse({ email, password, displayName });
+      if (!validation.success) {
+        throw new Error(validation.error.errors[0].message);
+      }
+
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/chat`,
           data: {
-            display_name: displayName,
-            username: displayName.toLowerCase().replace(/\s+/g, ''),
+            display_name: validation.data.displayName,
+            username: validation.data.displayName.toLowerCase().replace(/\s+/g, ''),
           },
         },
       });
@@ -35,7 +49,7 @@ const Signup = () => {
       if (error) throw error;
 
       toast({
-        title: "Welcome to Lovable! 🌱",
+        title: "Welcome to Haven! 🌱",
         description: "Your account has been created. Let's begin your journey.",
       });
       

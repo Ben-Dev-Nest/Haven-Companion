@@ -9,8 +9,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
+// Common disposable/temporary email domains to block
+const disposableEmailDomains = [
+  'tempmail.com', 'guerrillamail.com', '10minutemail.com', 'throwaway.email',
+  'mailinator.com', 'maildrop.cc', 'yopmail.com', 'fakeinbox.com',
+  'trashmail.com', 'getnada.com', 'temp-mail.org', 'getairmail.com'
+];
+
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address").max(255),
+  email: z.string()
+    .email("Please enter a valid email address")
+    .max(255)
+    .refine((email) => {
+      const domain = email.split('@')[1]?.toLowerCase();
+      return !disposableEmailDomains.includes(domain);
+    }, "Please use a real email address, not a temporary one")
+    .refine((email) => {
+      // Check for proper email format with TLD
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailRegex.test(email);
+    }, "Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 

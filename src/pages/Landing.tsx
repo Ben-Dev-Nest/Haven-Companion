@@ -30,8 +30,8 @@ const Landing = () => {
             Your Safe Space for Mental Wellness
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Connect with Haven, your compassionate AI companion, and access a supportive community 
-            dedicated to your mental health journey.
+            Connect with Haven, your culturally-aware AI companion designed for Kenyans and East Africans. 
+            Access compassionate support and local crisis resources for your mental health journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
@@ -54,7 +54,7 @@ const Landing = () => {
           <FeatureCard 
             icon={<MessageCircle className="w-8 h-8" />}
             title="AI Companion"
-            description="Chat with Haven, your empathetic AI friend available 24/7 to listen and support you."
+            description="Chat with Haven, your empathetic AI friend available 24/7. Built with understanding of Kenyan culture and context."
           />
           <FeatureCard 
             icon={<Users className="w-8 h-8" />}
@@ -69,7 +69,7 @@ const Landing = () => {
           <FeatureCard 
             icon={<Shield className="w-8 h-8" />}
             title="Safe & Private"
-            description="Your conversations are private and secure. We prioritize your safety and confidentiality."
+            description="Your conversations are private and secure. Access local Kenyan crisis helplines when you need immediate support."
           />
         </div>
       </section>

@@ -10,7 +10,7 @@ const CrisisResources = () => {
         <div>
           <h3 className="font-semibold text-lg text-foreground mb-1">Need immediate help?</h3>
           <p className="text-sm text-muted-foreground">
-            If you're in crisis, please reach out to these resources right away:
+            If you're in crisis, please reach out to these Kenyan resources right away:
           </p>
         </div>
       </div>
@@ -21,11 +21,11 @@ const CrisisResources = () => {
           className="w-full justify-start gap-3 h-auto py-3 hover:bg-destructive/10 border-destructive/30"
           asChild
         >
-          <a href="tel:988">
+          <a href="tel:1199">
             <Phone className="w-4 h-4 flex-shrink-0" />
             <div className="text-left">
-              <div className="font-semibold">988 Suicide & Crisis Lifeline</div>
-              <div className="text-xs text-muted-foreground">Call or text 988 (USA)</div>
+              <div className="font-semibold">Kenya Red Cross Mental Health</div>
+              <div className="text-xs text-muted-foreground">Call 1199 (toll-free)</div>
             </div>
           </a>
         </Button>
@@ -35,11 +35,39 @@ const CrisisResources = () => {
           className="w-full justify-start gap-3 h-auto py-3 hover:bg-destructive/10 border-destructive/30"
           asChild
         >
-          <a href="sms:741741">
+          <a href="tel:+254722178177">
+            <Phone className="w-4 h-4 flex-shrink-0" />
+            <div className="text-left">
+              <div className="font-semibold">Befrienders Kenya</div>
+              <div className="text-xs text-muted-foreground">+254 722 178 177 or +254 722 178 178</div>
+            </div>
+          </a>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 h-auto py-3 hover:bg-destructive/10 border-destructive/30"
+          asChild
+        >
+          <a href="tel:*446*1#">
             <MessageSquare className="w-4 h-4 flex-shrink-0" />
             <div className="text-left">
-              <div className="font-semibold">Crisis Text Line</div>
-              <div className="text-xs text-muted-foreground">Text HOME to 741741</div>
+              <div className="font-semibold">Free Mental Health Support</div>
+              <div className="text-xs text-muted-foreground">Dial *446*1# (USSD)</div>
+            </div>
+          </a>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 h-auto py-3 hover:bg-destructive/10 border-destructive/30"
+          asChild
+        >
+          <a href="tel:+254202694000">
+            <Phone className="w-4 h-4 flex-shrink-0" />
+            <div className="text-left">
+              <div className="font-semibold">Chiromo Hospital Emergency</div>
+              <div className="text-xs text-muted-foreground">+254 20 269 4000</div>
             </div>
           </a>
         </Button>
@@ -53,14 +81,14 @@ const CrisisResources = () => {
             <ExternalLink className="w-4 h-4 flex-shrink-0" />
             <div className="text-left">
               <div className="font-semibold">International Resources</div>
-              <div className="text-xs text-muted-foreground">Find help worldwide</div>
+              <div className="text-xs text-muted-foreground">If you're outside Kenya</div>
             </div>
           </a>
         </Button>
       </div>
       
       <p className="text-xs text-muted-foreground mt-4 italic">
-        💜 You matter. Your life matters. You're not alone in this.
+        💜 Wewe ni muhimu. Your life matters. Hauishi peke yako (You're not alone in this).
       </p>
     </Card>
   );

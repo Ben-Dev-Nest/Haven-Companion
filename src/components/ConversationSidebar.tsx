@@ -1,4 +1,4 @@
-import { MessageSquare, Plus, Trash2, Edit2 } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Edit2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ interface ConversationSidebarProps {
   onNewConversation: () => void;
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, title: string) => void;
+  messages?: Array<{ role: string; content: string; created_at?: string }>;
 }
 
 export const ConversationSidebar = ({
@@ -33,9 +34,33 @@ export const ConversationSidebar = ({
   onNewConversation,
   onDeleteConversation,
   onRenameConversation,
+  messages = [],
 }: ConversationSidebarProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+
+  const handleExport = () => {
+    const currentConv = conversations.find(c => c.id === currentConversationId);
+    const exportData = {
+      conversation: currentConv?.title || 'Untitled',
+      date: new Date().toISOString(),
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content,
+        timestamp: m.created_at
+      }))
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `haven-conversation-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleRename = (id: string, currentTitle: string) => {
     setEditingId(id);
@@ -52,7 +77,7 @@ export const ConversationSidebar = ({
 
   return (
     <div className="w-64 bg-secondary/30 border-r border-border flex flex-col h-full">
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border space-y-2">
         <Button
           onClick={onNewConversation}
           className="w-full"
@@ -61,6 +86,17 @@ export const ConversationSidebar = ({
           <Plus className="w-4 h-4 mr-2" />
           New Conversation
         </Button>
+        {currentConversationId && messages.length > 0 && (
+          <Button
+            onClick={handleExport}
+            className="w-full"
+            variant="outline"
+            size="sm"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Chat
+          </Button>
+        )}
       </div>
 
       <ScrollArea className="flex-1">

@@ -1,12 +1,36 @@
-import { Bot, User } from "lucide-react";
+import { Bot, User, Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
+  timestamp?: Date;
 }
 
-const ChatMessage = ({ role, content }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, timestamp }: ChatMessageProps) => {
   const isUser = role === "user";
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    toast({
+      title: "Copied to clipboard",
+      description: "Message copied successfully",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const formatTime = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(date);
+  };
   
   return (
     <div className={`flex gap-3 mb-4 animate-fade-in ${isUser ? "justify-end" : "justify-start"}`}>
@@ -15,14 +39,35 @@ const ChatMessage = ({ role, content }: ChatMessageProps) => {
           <Bot className="w-5 h-5 text-primary" />
         </div>
       )}
-      <div
-        className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-          isUser
-            ? "bg-primary text-primary-foreground shadow-soft"
-            : "bg-card border border-border shadow-sm"
-        }`}
-      >
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
+      <div className={`flex flex-col gap-1 max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
+        <div
+          className={`group relative rounded-2xl px-4 py-3 ${
+            isUser
+              ? "bg-primary text-primary-foreground shadow-soft"
+              : "bg-card border border-border shadow-sm"
+          }`}
+        >
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
+          {!isUser && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity bg-card border border-border shadow-sm"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check className="h-3 w-3 text-primary" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </Button>
+          )}
+        </div>
+        {timestamp && (
+          <span className="text-xs text-muted-foreground px-2">
+            {formatTime(timestamp)}
+          </span>
+        )}
       </div>
       {isUser && (
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0 shadow-sm">

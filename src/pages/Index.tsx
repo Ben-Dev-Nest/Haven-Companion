@@ -199,6 +199,7 @@ const Index = () => {
         onNewConversation={handleNewConversation}
         onDeleteConversation={deleteConversation}
         onRenameConversation={updateConversationTitle}
+        messages={messages}
       />
 
       {/* Main Content */}
@@ -284,7 +285,12 @@ const Index = () => {
               )}
 
               {messages.map((msg, idx) => (
-                <ChatMessage key={msg.id || idx} role={msg.role} content={msg.content} />
+                <ChatMessage 
+                  key={msg.id || idx} 
+                  role={msg.role} 
+                  content={msg.content}
+                  timestamp={msg.created_at ? new Date(msg.created_at) : new Date()}
+                />
               ))}
               {isLoading && (
                 <div className="flex gap-3 mb-4 animate-fade-in">
@@ -311,12 +317,13 @@ const Index = () => {
             <div className="flex gap-3 items-end">
               <Textarea
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => setInput(e.target.value.slice(0, 2000))}
                 onKeyDown={handleKeyDown}
                 placeholder="Share what's on your mind..."
                 className="resize-none rounded-2xl border-border/70 focus:border-primary transition-colors"
                 rows={2}
                 disabled={isLoading}
+                maxLength={2000}
               />
               <Button
                 onClick={handleSend}
@@ -327,9 +334,10 @@ const Index = () => {
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              Press Enter to send • Shift+Enter for new line
-            </p>
+            <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+              <span>Press Enter to send • Shift+Enter for new line</span>
+              <span>{input.length} / 2000</span>
+            </div>
           </div>
         </div>
       </div>

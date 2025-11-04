@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X } from "lucide-react";
+import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X, Settings, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { useConversations } from "@/hooks/useConversations";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { detectCrisisContent } from "@/utils/crisisDetection";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ const Index = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [showCrisisAlert, setShowCrisisAlert] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -209,6 +211,11 @@ const Index = () => {
   const handleSend = async () => {
     if ((!input.trim() && attachments.length === 0) || isLoading) return;
 
+    // Check for crisis content
+    if (detectCrisisContent(input)) {
+      setShowCrisisAlert(true);
+    }
+
     // Create a new conversation if none exists
     let convId = currentConversationId;
     if (!convId) {
@@ -330,6 +337,14 @@ const Index = () => {
             
             <div className="flex items-center gap-2">
               <ThemeToggle />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate("/settings")}
+                title="Settings"
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -375,20 +390,86 @@ const Index = () => {
           <div className="container max-w-4xl mx-auto space-y-6">
             {/* Crisis Resources Card */}
             <CrisisResources />
+            
+            {showCrisisAlert && (
+              <div className="p-4 bg-destructive/10 border border-destructive rounded-lg animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <p className="font-semibold text-destructive">Crisis Support Available</p>
+                    <p className="text-sm text-muted-foreground">
+                      I'm here to listen, but if you're in immediate danger or having thoughts of self-harm, please reach out to professional crisis support right away.
+                    </p>
+                    <div className="text-sm space-y-1 text-foreground">
+                      <p className="font-medium">Kenya Crisis Resources:</p>
+                      <p>🔴 Kenya Red Cross: <a href="tel:1199" className="underline hover:text-primary">1199</a> (toll-free)</p>
+                      <p>🔴 Befrienders Kenya: <a href="tel:+254722178177" className="underline hover:text-primary">+254 722 178 177</a></p>
+                      <p>🔴 USSD Code: *446*1# (Free mental health support)</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCrisisAlert(false)}
+                      className="mt-2"
+                    >
+                      I understand
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Messages */}
             <div className="space-y-4">
               {messages.length === 0 && (
-                <div className="text-center py-12 space-y-4">
+                <div className="text-center py-12 space-y-6">
                   <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow">
                     <Sparkles className="w-8 h-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold mb-2">Welcome to Haven</h2>
+                    <h2 className="text-3xl font-semibold mb-2">Karibu to Haven 🌱</h2>
                     <p className="text-muted-foreground max-w-md mx-auto">
-                      I'm here to listen and support you. Share what's on your mind, and let's work through it together.
+                      Your safe space for mental wellness. I'm here to listen, support, and walk with you through whatever you're facing.
                     </p>
                   </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto mt-8">
+                    <button
+                      onClick={() => setInput("I'm feeling overwhelmed today")}
+                      className="p-4 text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors group"
+                    >
+                      <div className="font-medium mb-1 group-hover:text-primary transition-colors">💭 Feeling Overwhelmed</div>
+                      <div className="text-sm text-muted-foreground">Talk about stress and anxiety</div>
+                    </button>
+                    
+                    <button
+                      onClick={() => setInput("I need someone to talk to")}
+                      className="p-4 text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors group"
+                    >
+                      <div className="font-medium mb-1 group-hover:text-primary transition-colors">🤝 Just Need to Talk</div>
+                      <div className="text-sm text-muted-foreground">Share what's on your mind</div>
+                    </button>
+                    
+                    <button
+                      onClick={() => setInput("How can I cope with difficult emotions?")}
+                      className="p-4 text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors group"
+                    >
+                      <div className="font-medium mb-1 group-hover:text-primary transition-colors">🌈 Coping Strategies</div>
+                      <div className="text-sm text-muted-foreground">Learn healthy coping methods</div>
+                    </button>
+                    
+                    <button
+                      onClick={() => setInput("I want to improve my mental wellness")}
+                      className="p-4 text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors group"
+                    >
+                      <div className="font-medium mb-1 group-hover:text-primary transition-colors">✨ Personal Growth</div>
+                      <div className="text-sm text-muted-foreground">Build mental resilience</div>
+                    </button>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mt-6 max-w-lg mx-auto">
+                    Remember: I'm here to support you, but I'm not a replacement for professional mental health care. If you're in crisis, please reach out to emergency services or helplines.
+                  </p>
                 </div>
               )}
 

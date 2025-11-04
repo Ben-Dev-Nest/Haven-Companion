@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const allowedOrigins = [
   'https://fb359ba6-fcf1-4e84-9ccf-f7bf1db539e8.lovableproject.com',
+  'https://haven-companion.lovable.app',
   'http://localhost:5173',
   'http://localhost:3000'
 ];

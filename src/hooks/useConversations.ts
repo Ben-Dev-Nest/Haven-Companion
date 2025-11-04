@@ -7,6 +7,12 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at?: string;
+  attachments?: Array<{
+    name: string;
+    path: string;
+    type: string;
+    size: number;
+  }>;
 }
 
 export interface Conversation {
@@ -66,6 +72,9 @@ export const useConversations = () => {
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
       created_at: msg.created_at,
+      attachments: Array.isArray(msg.attachments) 
+        ? msg.attachments as Array<{ name: string; path: string; type: string; size: number; }>
+        : [],
     })));
     setIsLoading(false);
   };

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Info, LogOut } from "lucide-react";
+import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,8 @@ import ChatMessage from "@/components/ChatMessage";
 import CrisisResources from "@/components/CrisisResources";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { useConversations } from "@/hooks/useConversations";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +25,25 @@ const Index = () => {
   const { toast } = useToast();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { 
+    isListening, 
+    transcript, 
+    startListening, 
+    stopListening, 
+    resetTranscript,
+    isSupported: isSpeechSupported 
+  } = useSpeechRecognition();
+
+  useEffect(() => {
+    if (transcript) {
+      setInput(prev => prev + transcript);
+      resetTranscript();
+    }
+  }, [transcript, resetTranscript]);
 
   const {
     conversations,
@@ -150,8 +170,44 @@ const Index = () => {
     }
   };
 
+  const uploadAttachments = async (conversationId: string) => {
+    if (attachments.length === 0) return [];
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const uploadedFiles = [];
+
+    for (const file of attachments) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${conversationId}/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+      } else {
+        uploadedFiles.push({
+          name: file.name,
+          path: data.path,
+          type: file.type,
+          size: file.size,
+        });
+      }
+    }
+
+    return uploadedFiles;
+  };
+
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && attachments.length === 0) || isLoading) return;
 
     // Create a new conversation if none exists
     let convId = currentConversationId;
@@ -162,17 +218,68 @@ const Index = () => {
       await switchConversation(convId);
     }
 
-    const userMessage = { role: "user" as const, content: input.trim() };
-    
-    // Save user message to database
-    await saveMessage(convId, "user", userMessage.content);
-    
-    // Add to local state
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
     setIsLoading(true);
 
+    // Upload attachments first
+    const uploadedFiles = await uploadAttachments(convId);
+
+    const userMessage = { 
+      role: "user" as const, 
+      content: input.trim() || "[Attachment]",
+      attachments: uploadedFiles 
+    };
+    
+    // Save user message to database with attachments
+    const { data: savedMessage } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: convId,
+        role: 'user',
+        content: userMessage.content,
+        attachments: uploadedFiles,
+      })
+      .select()
+      .single();
+    
+    // Add to local state
+    setMessages((prev) => [...prev, { ...userMessage, id: savedMessage?.id }]);
+    setInput("");
+    setAttachments([]);
+
     await streamChat(userMessage, convId);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: `${file.name} exceeds 10MB limit`,
+          variant: "destructive",
+        });
+        return false;
+      }
+      return true;
+    });
+    
+    setAttachments(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const toggleMicrophone = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -222,6 +329,7 @@ const Index = () => {
             </div>
             
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -290,6 +398,7 @@ const Index = () => {
                   role={msg.role} 
                   content={msg.content}
                   timestamp={msg.created_at ? new Date(msg.created_at) : new Date()}
+                  attachments={msg.attachments}
                 />
               ))}
               {isLoading && (
@@ -314,12 +423,72 @@ const Index = () => {
         {/* Input Area */}
         <div className="fixed bottom-0 right-0 left-64 border-t border-border/50 bg-card/95 backdrop-blur-lg shadow-soft">
           <div className="container max-w-4xl mx-auto px-4 py-4">
+            {/* Attachments preview */}
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {attachments.map((file, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2 text-sm"
+                  >
+                    <span className="truncate max-w-[150px]">{file.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 p-0"
+                      onClick={() => removeAttachment(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <div className="flex gap-3 items-end">
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="image/*,.pdf,.txt,.doc,.docx"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  title="Attach files"
+                  className="flex-shrink-0"
+                >
+                  <Paperclip className="w-5 h-5" />
+                </Button>
+                
+                {isSpeechSupported && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleMicrophone}
+                    disabled={isLoading}
+                    title={isListening ? "Stop recording" : "Start voice input"}
+                    className={`flex-shrink-0 ${isListening ? 'text-destructive animate-pulse' : ''}`}
+                  >
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5" />
+                    )}
+                  </Button>
+                )}
+              </div>
+              
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value.slice(0, 2000))}
                 onKeyDown={handleKeyDown}
-                placeholder="Share what's on your mind..."
+                placeholder={isListening ? "Listening..." : "Share what's on your mind..."}
                 className="resize-none rounded-2xl border-border/70 focus:border-primary transition-colors"
                 rows={2}
                 disabled={isLoading}
@@ -327,9 +496,9 @@ const Index = () => {
               />
               <Button
                 onClick={handleSend}
-                disabled={!input.trim() || isLoading}
+                disabled={(!input.trim() && attachments.length === 0) || isLoading}
                 size="icon"
-                className="h-12 w-12 rounded-full shadow-soft hover:shadow-glow transition-all"
+                className="h-12 w-12 rounded-full shadow-soft hover:shadow-glow transition-all flex-shrink-0"
               >
                 <Send className="w-5 h-5" />
               </Button>

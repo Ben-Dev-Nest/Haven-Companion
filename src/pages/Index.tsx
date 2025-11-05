@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X, Settings, AlertTriangle } from "lucide-react";
+import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X, Settings, AlertTriangle, Menu, Book, Heart, Wind, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import BreathingExercise from "@/components/BreathingExercise";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -337,6 +346,32 @@ const Index = () => {
             
             <div className="flex items-center gap-2">
               <ThemeToggle />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" title="Features">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Wellness Tools</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/mood")}>
+                    <Heart className="w-4 h-4 mr-2" />
+                    Mood Tracker
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/journal")}>
+                    <Book className="w-4 h-4 mr-2" />
+                    Journal
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/install")}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Install App
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -388,8 +423,11 @@ const Index = () => {
         {/* Chat Area */}
         <main className="flex-1 overflow-y-auto px-4 py-6 pb-32">
           <div className="container max-w-4xl mx-auto space-y-6">
-            {/* Crisis Resources Card */}
+            {/* Crisis Resources Card - Always visible */}
             <CrisisResources />
+            
+            {/* Breathing Exercise */}
+            {messages.length === 0 && <BreathingExercise />}
             
             {showCrisisAlert && (
               <div className="p-4 bg-destructive/10 border border-destructive rounded-lg animate-fade-in">
@@ -456,6 +494,28 @@ const Index = () => {
                     >
                       <div className="font-medium mb-1 group-hover:text-primary transition-colors">🌈 Coping Strategies</div>
                       <div className="text-sm text-muted-foreground">Learn healthy coping methods</div>
+                    </button>
+                    
+                    <button
+                      onClick={() => navigate("/mood")}
+                      className="p-4 text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors group"
+                    >
+                      <div className="font-medium mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
+                        <Heart className="w-4 h-4" />
+                        Track Your Mood
+                      </div>
+                      <div className="text-sm text-muted-foreground">Log how you're feeling today</div>
+                    </button>
+                    
+                    <button
+                      onClick={() => navigate("/journal")}
+                      className="p-4 text-left rounded-lg border border-border bg-card hover:bg-accent transition-colors group"
+                    >
+                      <div className="font-medium mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
+                        <Book className="w-4 h-4" />
+                        Write in Journal
+                      </div>
+                      <div className="text-sm text-muted-foreground">Express your thoughts privately</div>
                     </button>
                     
                     <button

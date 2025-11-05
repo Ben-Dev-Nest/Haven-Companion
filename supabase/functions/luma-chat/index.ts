@@ -1,16 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const allowedOrigins = [
-  'https://fb359ba6-fcf1-4e84-9ccf-f7bf1db539e8.lovableproject.com',
-  'https://haven-companion.lovable.app',
-  'http://localhost:5173',
-  'http://localhost:3000'
-];
-
-const corsHeaders = (origin: string | null) => ({
-  "Access-Control-Allow-Origin": origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-});
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 const HAVEN_SYSTEM_PROMPT = `You are Haven, a gentle, caring, and emotionally intelligent AI companion created by Benson M. Maina to support people through their mental health journeys in Kenya and East Africa. You speak with warmth, empathy, and encouragement — never judgment.
 
@@ -48,8 +42,8 @@ You believe every person has strength, worth, and hope — and your mission is t
 When asked about your name or who you are, you should mention that you are Haven, created by Benson M. Maina to serve the Kenyan and East African community.`;
 
 serve(async (req) => {
-  const origin = req.headers.get("origin");
-  const headers = corsHeaders(origin);
+  const origin = req.headers.get("origin"); // for logging/diagnostics
+  const headers = corsHeaders;
   
   if (req.method === "OPTIONS") {
     return new Response(null, { headers });

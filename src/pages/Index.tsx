@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X, Settings, AlertTriangle, Menu, Book, Heart, Wind, Download } from "lucide-react";
+import { Send, Sparkles, Info, LogOut, Mic, MicOff, Paperclip, X, Settings, AlertTriangle, Menu, Book, Heart, Wind, Download, TrendingUp, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import BreathingExercise from "@/components/BreathingExercise";
+import { WellnessStreak } from "@/components/WellnessStreak";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { useStreaks } from "@/hooks/useStreaks";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -48,6 +51,8 @@ const Index = () => {
     resetTranscript,
     isSupported: isSpeechSupported 
   } = useSpeechRecognition();
+
+  const { updateStreak } = useStreaks();
 
   useEffect(() => {
     if (transcript) {
@@ -364,6 +369,14 @@ const Index = () => {
                     <Book className="w-4 h-4 mr-2" />
                     Journal
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mood-insights")}>
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Mood Insights
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/community")}>
+                    <Users className="w-4 h-4 mr-2" />
+                    Community
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/install")}>
                     <Download className="w-4 h-4 mr-2" />
@@ -426,8 +439,14 @@ const Index = () => {
             {/* Crisis Resources Card - Always visible */}
             <CrisisResources />
             
+            {/* Wellness Streak */}
+            <WellnessStreak />
+            
             {/* Breathing Exercise */}
             {messages.length === 0 && <BreathingExercise />}
+            
+            {/* Install Prompt */}
+            <InstallPrompt />
             
             {showCrisisAlert && (
               <div className="p-4 bg-destructive/10 border border-destructive rounded-lg animate-fade-in">

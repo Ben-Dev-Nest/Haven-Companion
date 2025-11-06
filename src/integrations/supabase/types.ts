@@ -14,6 +14,190 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          earned_at: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          likes_count: number
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          likes_count?: number
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          likes_count?: number
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          member_count: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          member_count?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          member_count?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_likes: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          id: string
+          post_id: string | null
+          user_id: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          user_id: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          comments_count: number
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          is_anonymous: boolean
+          likes_count: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          is_anonymous?: boolean
+          likes_count?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments_count?: number
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          is_anonymous?: boolean
+          likes_count?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "community_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
@@ -187,6 +371,39 @@ export type Database = {
           is_anonymous?: boolean | null
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      wellness_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_check_in_date: string | null
+          longest_streak: number
+          total_check_ins: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_check_in_date?: string | null
+          longest_streak?: number
+          total_check_ins?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_check_in_date?: string | null
+          longest_streak?: number
+          total_check_ins?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

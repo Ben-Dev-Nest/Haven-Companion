@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Smile, Meh, Frown, Angry, Heart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useStreaks } from "@/hooks/useStreaks";
 
 const moods = [
   { value: "great", label: "Great", icon: Smile, color: "text-green-500" },
@@ -24,6 +25,7 @@ const MoodTracker = () => {
   const [intensity, setIntensity] = useState<number>(3);
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { updateStreak } = useStreaks();
 
   const { data: moodHistory } = useQuery({
     queryKey: ["mood-entries"],
@@ -61,6 +63,9 @@ const MoodTracker = () => {
       });
 
       if (error) throw error;
+
+      // Update wellness streak
+      await updateStreak();
 
       toast({
         title: "Mood logged successfully",

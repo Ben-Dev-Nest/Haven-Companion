@@ -95,7 +95,7 @@ const Landing = () => {
         <p className="mt-2">Not a substitute for professional mental health care.</p>
         <p className="mt-3 text-xs">
           Created by{" "}
-          <span className="font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" style={{ backgroundSize: '200% auto' }}>
+          <span className="font-semibold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(139,92,246,0.6)]">
             Benson M. Maina
           </span>
         </p>

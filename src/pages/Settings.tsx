@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Bell } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Switch } from "@/components/ui/switch";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -16,6 +18,13 @@ const Settings = () => {
   const [displayName, setDisplayName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const { preferences, loading: notifLoading, updatePreferences, testNotification } = useNotifications();
+  const [checkInTime, setCheckInTime] = useState('09:00');
+
+  // Sync checkInTime with loaded preferences
+  useEffect(() => {
+    setCheckInTime(preferences.check_in_time);
+  }, [preferences.check_in_time]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +99,69 @@ const Settings = () => {
         </Button>
 
         <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>Manage your daily check-in reminders</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="notifications">Daily Check-in Reminders</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Get a gentle reminder to check in on your mental wellness
+                  </p>
+                </div>
+                <Switch
+                  id="notifications"
+                  checked={preferences.enabled}
+                  onCheckedChange={(checked) => {
+                    updatePreferences(checked, checkInTime);
+                  }}
+                  disabled={notifLoading}
+                />
+              </div>
+
+              {preferences.enabled && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="checkInTime">Reminder Time</Label>
+                    <Input
+                      id="checkInTime"
+                      type="time"
+                      value={checkInTime}
+                      onChange={(e) => setCheckInTime(e.target.value)}
+                      className="max-w-[200px]"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => updatePreferences(true, checkInTime)}
+                      disabled={notifLoading}
+                      size="sm"
+                    >
+                      {notifLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Update Time
+                    </Button>
+                    <Button
+                      onClick={testNotification}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Bell className="mr-2 h-4 w-4" />
+                      Test Notification
+                    </Button>
+                  </div>
+                  {preferences.permission === 'denied' && (
+                    <p className="text-sm text-destructive">
+                      Notifications are blocked. Please enable them in your browser settings.
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Appearance</CardTitle>

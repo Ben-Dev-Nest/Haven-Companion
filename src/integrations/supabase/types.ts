@@ -127,6 +127,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          check_in_time: string
+          created_at: string
+          enabled: boolean
+          id: string
+          last_notification_sent: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_time?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_notification_sent?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_time?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_notification_sent?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

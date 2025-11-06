@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "robots.txt"],
+      includeAssets: ["favicon.ico", "robots.txt", "sw.js"],
+      injectRegister: 'auto',
       manifest: {
         name: "Haven - Mental Wellness Companion",
         short_name: "Haven",
